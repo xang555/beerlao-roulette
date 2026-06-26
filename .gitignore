@@ -23,6 +23,11 @@ coverage/
 # Logs
 *.log
 
+# Environment
+.env
+.env.local
+.env.*.local
+
 # Multica runtime (auto-generated, contains workspace tokens)
 .multica/
 .agent_context/
