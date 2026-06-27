@@ -7,7 +7,7 @@
  * 3. Edge cases (0, 1, many names)
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   pickWinnerIndex,
   calculateTargetRotation,
@@ -196,8 +196,14 @@ describe('spinMath', () => {
       });
 
       it('should handle rotations that exceed multiple full turns', () => {
-        // Simulate accumulated rotations across multiple spins
-        const rotation = calculateTargetRotation(1, 4) + calculateTargetRotation(3, 4);
+        // Simulate accumulated rotations across multiple spins (delta-based)
+        const rot1 = calculateTargetRotation(1, 4);
+        const segmentAngle = 360 / 4;
+        // Delta from index 1 to 3: indexDelta = 1 - 3 = -2, then += 4 = 2
+        let indexDelta = 1 - 3;
+        if (indexDelta < 0) indexDelta += 4;
+        const rot2 = indexDelta * segmentAngle + 5 * 360;
+        const rotation = rot1 + rot2;
         // After first spin: index 1 is under pointer
         // After second spin: index 3 is under pointer
         const final = indexFromRotation(rotation, 4);
@@ -269,7 +275,7 @@ describe('spinMath', () => {
 
   describe('rotation accumulation scenario', () => {
     it('should handle multiple spins accumulating rotation', () => {
-      // Simulate Frontend behavior: rotations accumulate
+      // Simulate Frontend behavior: rotations accumulate by delta
       const names = ['A', 'B', 'C'];
       let cumulativeRotation = 0;
 
@@ -280,10 +286,14 @@ describe('spinMath', () => {
       cumulativeRotation += rot1;
       expect(indexFromRotation(cumulativeRotation, names.length)).toBe(winner1);
 
-      // Second spin (new spin adds to previous rotation)
+      // Second spin (accumulate by delta from previous winner)
       const rng2 = createSeededRNG(2);
       const winner2 = pickWinnerIndex(names, rng2);
-      const rot2 = calculateTargetRotation(winner2, names.length);
+      // Calculate delta instead of absolute target
+      const segmentAngle = 360 / names.length;
+      let indexDelta = winner1 - winner2;
+      if (indexDelta < 0) indexDelta += names.length;
+      const rot2 = indexDelta * segmentAngle + 5 * 360;
       cumulativeRotation += rot2;
       // Final pointer should point to winner2
       expect(indexFromRotation(cumulativeRotation, names.length)).toBe(winner2);

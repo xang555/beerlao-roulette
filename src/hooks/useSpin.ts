@@ -126,6 +126,9 @@ export function useSpin(options: UseSpinOptions = {}): {
   // Track cumulative rotation across multiple spins
   const cumulativeRotationRef = useRef(0);
 
+  // Track previous winner index for delta calculation
+  const previousWinnerIndexRef = useRef(-1);
+
   // Track timeout for cleanup on unmount/re-spin
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -170,10 +173,30 @@ export function useSpin(options: UseSpinOptions = {}): {
     const winnerIndex = pickWinnerIndex(names, rng);
 
     // Calculate target rotation
-    // IMPORTANT: accumulate rotation so wheel doesn't snap back to 0
-    const targetRotationForThisSpin = calculateTargetRotation(winnerIndex, count);
-    cumulativeRotationRef.current += targetRotationForThisSpin;
+    // IMPORTANT: accumulate by delta to new winner, not absolute target
+    // This ensures multi-spin scenarios land on the correct winner each time
+    const segmentAngle = 360 / count;
+    const previousWinnerIndex = previousWinnerIndexRef.current;
+
+    let deltaRotation: number;
+    if (previousWinnerIndex === -1) {
+      // First spin: use full target rotation
+      deltaRotation = calculateTargetRotation(winnerIndex, count);
+    } else {
+      // Subsequent spins: calculate delta from previous winner
+      // Wheel rotates clockwise, so higher indices need negative delta
+      let indexDelta = previousWinnerIndex - winnerIndex;
+      // Handle wraparound (e.g., going from index 0 to 2 means wraparound)
+      if (indexDelta < 0) {
+        indexDelta += count;
+      }
+      // Delta rotation: move to new winner + dramatic turns (always 5 full turns)
+      deltaRotation = indexDelta * segmentAngle + 5 * 360;
+    }
+
+    cumulativeRotationRef.current += deltaRotation;
     const targetRotation = cumulativeRotationRef.current;
+    previousWinnerIndexRef.current = winnerIndex;
 
     // Update state
     setState({
