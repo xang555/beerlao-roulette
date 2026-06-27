@@ -1,9 +1,18 @@
+import { useState, useCallback } from 'react'
 import { useNames } from './hooks/useNames'
 import PlayerPanel from './components/PlayerPanel/PlayerPanel.jsx'
 import WheelStage from './components/WheelStage/WheelStage.jsx'
 
 export default function App() {
   const { names, add, remove, error, clearError } = useNames()
+  const [spinResult, setSpinResult] = useState(null)
+
+  const handleSpinComplete = useCallback(
+    ({ winnerIndex }) => {
+      setSpinResult({ name: names[winnerIndex], index: winnerIndex })
+    },
+    [names],
+  )
 
   return (
     <div className="game-layout">
@@ -33,7 +42,7 @@ export default function App() {
       </header>
 
       <main className="game-stage">
-        <WheelStage players={names} />
+        <WheelStage players={names} onSpinComplete={handleSpinComplete} />
         <PlayerPanel
           names={names}
           onAdd={add}

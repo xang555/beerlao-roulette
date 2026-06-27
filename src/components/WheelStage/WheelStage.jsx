@@ -1,13 +1,26 @@
+import { useCallback } from 'react'
+import { useSpin } from '../../hooks/useSpin'
+import Wheel from '../Wheel/Wheel'
+
 /**
- * WheelStage — placeholder for the spinning roulette wheel.
+ * WheelStage — orchestrates useSpin and renders the Wheel + SPIN button.
  *
- * Receives `winnerIndex` from the Logic module (not yet implemented).
- * Segment colors cycle through --wheel-color-1 … --wheel-color-8 (see tokens.css).
- *
- * Full implementation lives in the Wheel sub-issue.
+ * Owns the useSpin hook so it is the single point that bridges the logic
+ * layer (winnerIndex, targetRotation) with the visual layer (Wheel).
+ * Never computes the winner itself — that lives exclusively in useSpin.
  */
-export default function WheelStage({ players = [], winnerIndex = null, onSpinComplete }) {
-  const wheelSize = 'var(--wheel-size-lg)'
+export default function WheelStage({ players = [], onSpinComplete }) {
+  const handleComplete = useCallback(
+    (result) => {
+      if (onSpinComplete) onSpinComplete(result)
+    },
+    [onSpinComplete],
+  )
+
+  const { state, spin, timing } = useSpin({ onComplete: handleComplete })
+  const { isSpinning, targetRotation } = state
+
+  const canSpin = players.length >= 2 && !isSpinning
 
   return (
     <div
@@ -18,49 +31,35 @@ export default function WheelStage({ players = [], winnerIndex = null, onSpinCom
         gap: 'var(--space-6)',
       }}
     >
-      {/* Wheel placeholder */}
-      <div
-        role="img"
-        aria-label="Roulette wheel — implementation coming soon"
-        style={{
-          width: wheelSize,
-          height: wheelSize,
-          borderRadius: 'var(--radius-full)',
-          background: 'var(--color-bg-surface)',
-          border: '2px solid var(--color-border-neon-cyan)',
-          boxShadow: 'var(--glow-cyan-md)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--color-text-muted)',
-            letterSpacing: 'var(--letter-spacing-wider)',
-            textAlign: 'center',
-            padding: 'var(--space-4)',
-          }}
-        >
-          WHEEL
-          <br />
-          COMING SOON
-        </span>
-      </div>
+      <Wheel
+        names={players}
+        isSpinning={isSpinning}
+        targetRotation={targetRotation}
+        timing={timing}
+      />
 
-      {/* Spin button placeholder */}
       <button
         className="btn btn--primary"
-        disabled
+        onClick={() => spin(players)}
+        disabled={!canSpin}
+        aria-label={
+          isSpinning
+            ? 'Spinning…'
+            : players.length < 2
+            ? 'Add at least 2 players to spin'
+            : 'Spin the wheel'
+        }
         style={{
-          fontSize: 'var(--font-size-lg)',
-          padding: 'var(--space-4) var(--space-12)',
+          fontSize: 'var(--font-size-2xl)',
+          padding: 'var(--space-4) var(--space-16)',
           borderRadius: 'var(--radius-full)',
+          letterSpacing: 'var(--letter-spacing-widest)',
+          boxShadow: canSpin ? 'var(--glow-cyan-md)' : 'none',
+          transition:
+            'box-shadow var(--duration-normal) var(--ease-default), opacity var(--duration-fast) var(--ease-default)',
         }}
       >
-        SPIN
+        {isSpinning ? 'SPINNING…' : 'SPIN'}
       </button>
     </div>
   )
