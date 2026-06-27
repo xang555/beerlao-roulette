@@ -1,7 +1,10 @@
+import { useNames } from './hooks/useNames'
 import PlayerPanel from './components/PlayerPanel/PlayerPanel.jsx'
 import WheelStage from './components/WheelStage/WheelStage.jsx'
 
 export default function App() {
+  const { names, add, remove, error, clearError } = useNames()
+
   return (
     <div className="game-layout">
       <header style={{ textAlign: 'center' }}>
@@ -30,8 +33,14 @@ export default function App() {
       </header>
 
       <main className="game-stage">
-        <WheelStage />
-        <PlayerPanel />
+        <WheelStage players={names} />
+        <PlayerPanel
+          names={names}
+          onAdd={add}
+          onRemove={remove}
+          error={error}
+          onClearError={clearError}
+        />
       </main>
 
       <footer

@@ -1,10 +1,6 @@
-/**
- * PlayerPanel — placeholder for add-player UI and player list.
- *
- * Full implementation (add, remove, validation) lives in the PlayerPanel sub-issue.
- * Exposes `players` state upward so WheelStage can consume the list.
- */
-export default function PlayerPanel({ players = [], onPlayersChange }) {
+import NameInput from '../NameInput/NameInput'
+
+export default function PlayerPanel({ names, onAdd, onRemove, error, onClearError }) {
   return (
     <div
       className="card card--neon"
@@ -26,57 +22,42 @@ export default function PlayerPanel({ players = [], onPlayersChange }) {
         }}
       >
         Players
+        {names.length > 0 && (
+          <span
+            style={{
+              marginLeft: 'var(--space-2)',
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-muted)',
+              fontFamily: 'var(--font-body)',
+              fontWeight: 'var(--font-weight-normal)',
+              letterSpacing: 'var(--letter-spacing-normal)',
+            }}
+          >
+            ({names.length})
+          </span>
+        )}
       </h2>
 
-      {/* Input placeholder */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 'var(--space-2)',
-        }}
-      >
-        <input
-          className="input"
-          type="text"
-          placeholder="Add player name…"
-          disabled
-          aria-label="Player name (coming soon)"
-        />
-        <button className="btn btn--primary" disabled aria-label="Add player">
-          +
-        </button>
-      </div>
-
-      {/* Player list placeholder */}
-      <div
-        style={{
-          minHeight: '120px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--color-text-muted)',
-          fontSize: 'var(--font-size-sm)',
-          letterSpacing: 'var(--letter-spacing-wide)',
-          border: '1px dashed var(--color-border)',
-          borderRadius: 'var(--radius-md)',
-          padding: 'var(--space-4)',
-          textAlign: 'center',
-        }}
-      >
-        PLAYER LIST
-        <br />
-        COMING SOON
-      </div>
+      <NameInput
+        names={names}
+        onAdd={onAdd}
+        onRemove={onRemove}
+        error={error}
+        onClearError={onClearError}
+      />
 
       <p
         style={{
           fontSize: 'var(--font-size-xs)',
-          color: 'var(--color-text-muted)',
+          color: names.length >= 2 ? 'var(--color-neon-lime)' : 'var(--color-text-muted)',
           textAlign: 'center',
           letterSpacing: 'var(--letter-spacing-wide)',
+          transition: 'color var(--duration-normal) var(--ease-default)',
         }}
       >
-        MIN 2 PLAYERS TO SPIN
+        {names.length >= 2
+          ? `${names.length} PLAYERS READY`
+          : `MIN 2 PLAYERS TO SPIN · ${2 - names.length} MORE NEEDED`}
       </p>
     </div>
   )

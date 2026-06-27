@@ -129,8 +129,9 @@ export function indexFromRotation(rotation: number, totalNames: number): number 
   // Using floor for integer index, with wraparound handling via modulo
 
   const normalizedAngle = (360 - effectiveRotation) % 360;
-  const index = Math.floor(normalizedAngle / segmentAngle - 0.5);
+  // Tiny epsilon absorbs floating-point rounding from the double-subtraction
+  // (360 - (360 - x)) ≈ x ± ε without altering genuine half-integer boundaries.
+  const index = Math.floor(normalizedAngle / segmentAngle - 0.5 + 1e-9);
 
-  // Handle negative result (when normalizedAngle < segmentAngle / 2)
   return ((index % totalNames) + totalNames) % totalNames;
 }
