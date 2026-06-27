@@ -1,19 +1,20 @@
-import { useCallback } from 'react'
+import { forwardRef, useCallback, useImperativeHandle } from 'react'
 import { useSpin } from '../../hooks/useSpin'
 import Wheel from '../Wheel/Wheel'
 
 /**
  * WheelStage — orchestrates useSpin and renders the Wheel + SPIN button.
  *
- * Owns the useSpin hook so it is the single point that bridges the logic
- * layer (winnerIndex, targetRotation) with the visual layer (Wheel).
- * Never computes the winner itself — that lives exclusively in useSpin.
+ * Exposes { spin } via a forwarded ref so App can trigger spin-again
+ * without lifting useSpin out of this component. Both the internal button
+ * and the imperative ref path go through triggerSpin so onSpinStart always fires.
  */
-export default function WheelStage({ players = [], onSpinComplete }) {
+const WheelStage = forwardRef(function WheelStage(
+  { players = [], onSpinComplete, onSpinStart },
+  ref,
+) {
   const handleComplete = useCallback(
-    (result) => {
-      if (onSpinComplete) onSpinComplete(result)
-    },
+    (result) => { if (onSpinComplete) onSpinComplete(result) },
     [onSpinComplete],
   )
 
@@ -21,6 +22,14 @@ export default function WheelStage({ players = [], onSpinComplete }) {
   const { isSpinning, targetRotation } = state
 
   const canSpin = players.length >= 2 && !isSpinning
+
+  const triggerSpin = useCallback(() => {
+    if (!canSpin) return
+    onSpinStart?.(timing.duration)
+    spin(players)
+  }, [canSpin, onSpinStart, timing.duration, spin, players])
+
+  useImperativeHandle(ref, () => ({ spin: triggerSpin }), [triggerSpin])
 
   return (
     <div
@@ -40,7 +49,7 @@ export default function WheelStage({ players = [], onSpinComplete }) {
 
       <button
         className="btn btn--primary"
-        onClick={() => spin(players)}
+        onClick={triggerSpin}
         disabled={!canSpin}
         aria-label={
           isSpinning
@@ -63,4 +72,6 @@ export default function WheelStage({ players = [], onSpinComplete }) {
       </button>
     </div>
   )
-}
+})
+
+export default WheelStage
