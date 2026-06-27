@@ -23,7 +23,7 @@
  */
 export function createSeededRNG(seed: number): () => number {
   // Ensure seed is a positive integer
-  const state = Math.floor(Math.abs(seed)) || 1;
+  let state = Math.floor(Math.abs(seed)) || 1;
 
   return function mulberry32(): number {
     let t = state += 0x6D2B79F5;

@@ -9,7 +9,7 @@
  * Frontend owns: rendering, animation frame timing, DOM/canvas.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { pickWinnerIndex, calculateTargetRotation } from '../lib/spinMath';
 import { defaultRNG, type RNG } from '../lib/random';
 
@@ -126,6 +126,18 @@ export function useSpin(options: UseSpinOptions = {}): {
   // Track cumulative rotation across multiple spins
   const cumulativeRotationRef = useRef(0);
 
+  // Track timeout for cleanup on unmount/re-spin
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   const [state, setState] = useState<SpinState>({
     isSpinning: false,
     winnerIndex: -1,
@@ -148,6 +160,12 @@ export function useSpin(options: UseSpinOptions = {}): {
       return;
     }
 
+    // Clear any existing timeout (re-spin scenario)
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     // Select winner index
     const winnerIndex = pickWinnerIndex(names, rng);
 
@@ -167,7 +185,7 @@ export function useSpin(options: UseSpinOptions = {}): {
     // Schedule completion after duration
     // Frontend will handle the actual animation frames
     // This just marks the spin as "done" logically
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setState(prev => ({
         ...prev,
         isSpinning: false,
@@ -176,6 +194,7 @@ export function useSpin(options: UseSpinOptions = {}): {
       if (onComplete) {
         onComplete({ winnerIndex, targetRotation });
       }
+      timeoutRef.current = null;
     }, timing.duration);
   }, [rng, timing, onComplete]);
 

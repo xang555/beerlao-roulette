@@ -123,24 +123,27 @@ describe('spinMath', () => {
 
     describe('calculation correctness', () => {
       it('should calculate correct rotation for index 0', () => {
-        // 3 segments, index 0: center at 60 degrees
+        // 3 segments, segmentAngle = 120, index 0 center at 60°
+        // New formula: 360 - (0 + 0.5) * 120 = 360 - 60 = 300
         const rotation = calculateTargetRotation(0, 3);
-        // (0 + 0.5) * 120 + 5 * 360 = 60 + 1800 = 1860
-        expect(rotation).toBe(1860);
+        // 360 - (0 + 0.5) * 120 + 5 * 360 = 300 + 1800 = 2100
+        expect(rotation).toBe(2100);
       });
 
       it('should calculate correct rotation for middle index', () => {
-        // 3 segments, index 1: center at 180 degrees
+        // 3 segments, segmentAngle = 120, index 1 center at 180°
+        // New formula: 360 - (1 + 0.5) * 120 = 360 - 180 = 180
         const rotation = calculateTargetRotation(1, 3);
-        // (1 + 0.5) * 120 + 5 * 360 = 180 + 1800 = 1980
+        // 360 - (1 + 0.5) * 120 + 5 * 360 = 180 + 1800 = 1980
         expect(rotation).toBe(1980);
       });
 
       it('should calculate correct rotation for last index', () => {
-        // 3 segments, index 2: center at 300 degrees
+        // 3 segments, segmentAngle = 120, index 2 center at 300°
+        // New formula: 360 - (2 + 0.5) * 120 = 360 - 300 = 60
         const rotation = calculateTargetRotation(2, 3);
-        // (2 + 0.5) * 120 + 5 * 360 = 300 + 1800 = 2100
-        expect(rotation).toBe(2100);
+        // 360 - (2 + 0.5) * 120 + 5 * 360 = 60 + 1800 = 1860
+        expect(rotation).toBe(1860);
       });
 
       it('should support custom fullTurns parameter', () => {

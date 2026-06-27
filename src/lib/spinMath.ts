@@ -80,8 +80,9 @@ export function calculateTargetRotation(
 
   const segmentAngle = 360 / totalNames;
   // Center of segment winnerIndex: (winnerIndex + 0.5) * segmentAngle
-  // Rotate clockwise by this amount to bring segment to top
-  const alignmentRotation = (winnerIndex + 0.5) * segmentAngle;
+  // To bring segment i to top (pointer at 0°), rotate counterclockwise by that amount
+  // Since wheel rotates clockwise, we rotate by: 360 - segmentAngle
+  const alignmentRotation = 360 - (winnerIndex + 0.5) * segmentAngle;
 
   // Add full turns for dramatic effect
   const dramaticRotation = fullTurns * 360;
@@ -121,17 +122,15 @@ export function indexFromRotation(rotation: number, totalNames: number): number 
   // Remove full rotations to get the effective rotation
   const effectiveRotation = rotation % 360;
 
-  // The segment covering angle θ is: floor(θ / segmentAngle)
-  // But since wheel rotates clockwise and pointer is at top,
-  // we need to account for the half-segment offset.
-  // A segment i is at position (i + 0.5) * segmentAngle.
-  // So the index covering angle θ is: floor(θ / segmentAngle - 0.5) adjusted for wraparound.
-  // Actually, simpler: the segment that ends at angle θ is what was at that position before rotation.
-  // When wheel rotates by θ clockwise, segment that was at -θ moves to 0.
-  // So segment index = floor((360 - effectiveRotation) / segmentAngle) % totalNames
+  // Inverse of: alignmentRotation = 360 - (i + 0.5) * segmentAngle
+  // effectiveRotation = (360 - (i + 0.5) * segmentAngle) % 360
+  // Solving for i: (i + 0.5) * segmentAngle = (360 - effectiveRotation) % 360
+  // i = ((360 - effectiveRotation) % 360) / segmentAngle - 0.5
+  // Using floor for integer index, with wraparound handling via modulo
 
-  const effectiveCounterRotation = (360 - effectiveRotation) % 360;
-  const index = Math.floor(effectiveCounterRotation / segmentAngle);
+  const normalizedAngle = (360 - effectiveRotation) % 360;
+  const index = Math.floor(normalizedAngle / segmentAngle - 0.5);
 
-  return index % totalNames;
+  // Handle negative result (when normalizedAngle < segmentAngle / 2)
+  return ((index % totalNames) + totalNames) % totalNames;
 }
