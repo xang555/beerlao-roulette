@@ -27,7 +27,7 @@ body {
 
   /* Subtle starfield-style background pattern */
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 229, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212, 136, 30, 0.08) 0%, transparent 60%),
     radial-gradient(ellipse 40% 40% at 80% 80%, rgba(255, 0, 122, 0.04) 0%, transparent 50%);
 
   min-height: 100vh;
@@ -63,10 +63,10 @@ h1, h2, h3, h4, h5, h6 {
    FOCUS VISIBLE — keyboard a11y, high-contrast neon ring
 -------------------------------------------------------------------------- */
 :focus-visible {
-  outline: 2px solid var(--color-neon-cyan);
+  outline: 2px solid var(--color-primary);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
-  box-shadow: var(--glow-cyan-sm);
+  box-shadow: var(--glow-amber-sm);
 }
 
 /* Suppress focus ring for mouse/touch interaction */
@@ -86,12 +86,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.25);
+  background: rgba(212, 136, 30, 0.30);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 229, 255, 0.45);
+  background: rgba(212, 136, 30, 0.55);
 }
 
 /* --------------------------------------------------------------------------
@@ -139,8 +139,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card--neon {
-  border-color: var(--color-border-neon-cyan);
-  box-shadow: var(--glow-cyan-sm), inset 0 1px 0 rgba(0, 229, 255, 0.05);
+  border-color: var(--color-border-primary);
+  box-shadow: var(--glow-amber-sm), inset 0 1px 0 rgba(212, 136, 30, 0.05);
 }
 
 /* Neon button base */
@@ -172,19 +172,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn--primary {
-  background: var(--color-neon-cyan);
+  background: var(--color-primary);
   color: var(--color-bg-base);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: #33ecff;
-  box-shadow: var(--glow-cyan-md);
+  background: var(--color-primary-light);
+  box-shadow: var(--glow-amber-md);
   transform: translateY(-1px);
 }
 
 .btn--primary:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: var(--glow-cyan-sm);
+  box-shadow: var(--glow-amber-sm);
 }
 
 .btn--ghost {
@@ -194,9 +194,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn--ghost:hover:not(:disabled) {
-  border-color: var(--color-border-neon-cyan);
-  color: var(--color-neon-cyan);
-  box-shadow: var(--glow-cyan-sm);
+  border-color: var(--color-border-primary);
+  color: var(--color-primary-light);
+  box-shadow: var(--glow-amber-sm);
 }
 
 /* Neon input */
@@ -218,13 +218,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .input:hover {
-  border-color: rgba(0, 229, 255, 0.2);
+  border-color: rgba(212, 136, 30, 0.25);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--color-neon-cyan);
-  box-shadow: var(--glow-cyan-sm);
+  border-color: var(--color-primary);
+  box-shadow: var(--glow-amber-sm);
 }
 
 /* --------------------------------------------------------------------------
@@ -256,6 +256,11 @@ h1, h2, h3, h4, h5, h6 {
   text-shadow: var(--glow-cyan-sm);
 }
 
+.text-primary {
+  color: var(--color-primary-light);
+  text-shadow: var(--glow-amber-sm);
+}
+
 .text-neon-magenta {
   color: var(--color-neon-magenta);
   text-shadow: var(--glow-magenta-sm);
@@ -264,6 +269,14 @@ h1, h2, h3, h4, h5, h6 {
 .text-neon-gold {
   color: var(--color-neon-gold);
   text-shadow: var(--glow-gold-sm);
+}
+
+/* --------------------------------------------------------------------------
+   WHEEL ANIMATIONS
+-------------------------------------------------------------------------- */
+@keyframes whl-bezel-shimmer {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 /* --------------------------------------------------------------------------

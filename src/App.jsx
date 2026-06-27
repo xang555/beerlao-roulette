@@ -49,8 +49,8 @@ export default function App() {
             fontFamily: 'var(--font-display)',
             fontSize: 'var(--font-size-4xl)',
             letterSpacing: 'var(--letter-spacing-widest)',
-            color: 'var(--color-neon-cyan)',
-            textShadow: 'var(--glow-cyan-md)',
+            color: 'var(--color-primary-light)',
+            textShadow: 'var(--glow-amber-md)',
             textTransform: 'uppercase',
           }}
         >
@@ -75,9 +75,9 @@ export default function App() {
             top: 0,
             right: 0,
             background: 'transparent',
-            border: `1px solid ${muted ? 'var(--color-border)' : 'var(--color-border-neon-cyan)'}`,
+            border: `1px solid ${muted ? 'var(--color-border)' : 'var(--color-border-primary)'}`,
             borderRadius: 'var(--radius-md)',
-            color: muted ? 'var(--color-text-muted)' : 'var(--color-neon-cyan)',
+            color: muted ? 'var(--color-text-muted)' : 'var(--color-primary)',
             fontSize: 'var(--font-size-xl)',
             padding: 'var(--space-2) var(--space-3)',
             cursor: 'pointer',

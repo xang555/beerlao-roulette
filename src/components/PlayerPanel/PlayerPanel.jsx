@@ -16,8 +16,8 @@ export default function PlayerPanel({ names, onAdd, onRemove, error, onClearErro
           fontFamily: 'var(--font-display)',
           fontSize: 'var(--font-size-lg)',
           letterSpacing: 'var(--letter-spacing-wider)',
-          color: 'var(--color-neon-cyan)',
-          textShadow: 'var(--glow-cyan-sm)',
+          color: 'var(--color-primary-light)',
+          textShadow: 'var(--glow-amber-sm)',
           textTransform: 'uppercase',
         }}
       >

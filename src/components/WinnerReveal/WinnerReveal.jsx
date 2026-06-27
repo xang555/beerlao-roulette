@@ -189,7 +189,7 @@ export default function WinnerReveal({ winner, onSpinAgain, onReset }) {
                 padding: 'var(--space-4) var(--space-10)',
                 borderRadius: 'var(--radius-full)',
                 letterSpacing: 'var(--letter-spacing-widest)',
-                boxShadow: 'var(--glow-cyan-md)',
+                boxShadow: 'var(--glow-amber-md)',
               }}
             >
               SPIN AGAIN

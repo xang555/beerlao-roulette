@@ -63,7 +63,7 @@ const WheelStage = forwardRef(function WheelStage(
           padding: 'var(--space-4) var(--space-16)',
           borderRadius: 'var(--radius-full)',
           letterSpacing: 'var(--letter-spacing-widest)',
-          boxShadow: canSpin ? 'var(--glow-cyan-md)' : 'none',
+          boxShadow: canSpin ? 'var(--glow-amber-md)' : 'none',
           transition:
             'box-shadow var(--duration-normal) var(--ease-default), opacity var(--duration-fast) var(--ease-default)',
         }}
