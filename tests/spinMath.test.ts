@@ -274,8 +274,8 @@ describe('spinMath', () => {
   });
 
   describe('rotation accumulation scenario', () => {
-    it('should handle multiple spins accumulating rotation', () => {
-      // Simulate Frontend behavior: rotations accumulate by delta
+    it('should handle multiple spins accumulating rotation (stable roster)', () => {
+      // Simulate Frontend behavior: rotations accumulate by forward distance
       const names = ['A', 'B', 'C'];
       let cumulativeRotation = 0;
 
@@ -286,17 +286,110 @@ describe('spinMath', () => {
       cumulativeRotation += rot1;
       expect(indexFromRotation(cumulativeRotation, names.length)).toBe(winner1);
 
-      // Second spin (accumulate by delta from previous winner)
+      // Second spin (accumulate by forward distance, same roster)
       const rng2 = createSeededRNG(2);
       const winner2 = pickWinnerIndex(names, rng2);
-      // Calculate delta instead of absolute target
+      // Calculate delta using absolute-rotation forward-distance approach
       const segmentAngle = 360 / names.length;
-      let indexDelta = winner1 - winner2;
-      if (indexDelta < 0) indexDelta += names.length;
-      const rot2 = indexDelta * segmentAngle + 5 * 360;
+      const desiredMod = ((360 - (winner2 + 0.5) * segmentAngle) % 360 + 360) % 360;
+      const currentMod = ((cumulativeRotation % 360) + 360) % 360;
+      const forward = ((desiredMod - currentMod) % 360 + 360) % 360;
+      const rot2 = forward + 5 * 360;
       cumulativeRotation += rot2;
       // Final pointer should point to winner2
       expect(indexFromRotation(cumulativeRotation, names.length)).toBe(winner2);
+    });
+
+    describe('roster change scenario (regression test)', () => {
+      it('should land on correct segment when roster changes: 5 → 4 names', () => {
+        // Simulate: spin with 5 names, then spin again with 4 names
+        const names5 = ['A', 'B', 'C', 'D', 'E'];
+        const names4 = ['A', 'B', 'C', 'D'];
+        let cumulativeRotation = 0;
+
+        // First spin with 5 names
+        const rng1 = createSeededRNG(1);
+        const winner5 = pickWinnerIndex(names5, rng1);
+        const rot1 = calculateTargetRotation(winner5, names5.length);
+        cumulativeRotation += rot1;
+        expect(indexFromRotation(cumulativeRotation, names5.length)).toBe(winner5);
+
+        // Second spin with 4 names (roster changed!)
+        const rng2 = createSeededRNG(2);
+        const winner4 = pickWinnerIndex(names4, rng2);
+        // Calculate delta using absolute-rotation forward-distance approach
+        const segmentAngle4 = 360 / names4.length;
+        const desiredMod = ((360 - (winner4 + 0.5) * segmentAngle4) % 360 + 360) % 360;
+        const currentMod = ((cumulativeRotation % 360) + 360) % 360;
+        const forward = ((desiredMod - currentMod) % 360 + 360) % 360;
+        const rot2 = forward + 5 * 360;
+        cumulativeRotation += rot2;
+        // Final pointer should point to winner4 when using new count
+        expect(indexFromRotation(cumulativeRotation, names4.length)).toBe(winner4);
+      });
+
+      it('should land on correct segment when roster changes: 4 → 6 names', () => {
+        // Simulate: spin with 4 names, then spin again with 6 names
+        const names4 = ['A', 'B', 'C', 'D'];
+        const names6 = ['A', 'B', 'C', 'D', 'E', 'F'];
+        let cumulativeRotation = 0;
+
+        // First spin with 4 names
+        const rng1 = createSeededRNG(3);
+        const winner4 = pickWinnerIndex(names4, rng1);
+        const rot1 = calculateTargetRotation(winner4, names4.length);
+        cumulativeRotation += rot1;
+        expect(indexFromRotation(cumulativeRotation, names4.length)).toBe(winner4);
+
+        // Second spin with 6 names (roster expanded!)
+        const rng2 = createSeededRNG(4);
+        const winner6 = pickWinnerIndex(names6, rng2);
+        // Calculate delta using absolute-rotation forward-distance approach
+        const segmentAngle6 = 360 / names6.length;
+        const desiredMod = ((360 - (winner6 + 0.5) * segmentAngle6) % 360 + 360) % 360;
+        const currentMod = ((cumulativeRotation % 360) + 360) % 360;
+        const forward = ((desiredMod - currentMod) % 360 + 360) % 360;
+        const rot2 = forward + 5 * 360;
+        cumulativeRotation += rot2;
+        // Final pointer should point to winner6 when using new count
+        expect(indexFromRotation(cumulativeRotation, names6.length)).toBe(winner6);
+      });
+
+      it('should handle repeated roster changes: add one name each spin', () => {
+        // Simulate: 2 names → 3 names → 4 names → 5 names
+        const rosters = [
+          ['A', 'B'],
+          ['A', 'B', 'C'],
+          ['A', 'B', 'C', 'D'],
+          ['A', 'B', 'C', 'D', 'E'],
+        ];
+        let cumulativeRotation = 0;
+        let previousWinner = -1;
+
+        for (let i = 0; i < rosters.length; i++) {
+          const names = rosters[i];
+          const rng = createSeededRNG(10 + i);
+          const winner = pickWinnerIndex(names, rng);
+
+          if (previousWinner === -1) {
+            // First spin: use full target rotation
+            const rot = calculateTargetRotation(winner, names.length);
+            cumulativeRotation += rot;
+          } else {
+            // Subsequent spin: calculate forward distance
+            const segmentAngle = 360 / names.length;
+            const desiredMod = ((360 - (winner + 0.5) * segmentAngle) % 360 + 360) % 360;
+            const currentMod = ((cumulativeRotation % 360) + 360) % 360;
+            const forward = ((desiredMod - currentMod) % 360 + 360) % 360;
+            const rot = forward + 5 * 360;
+            cumulativeRotation += rot;
+          }
+
+          // Verify we land on the correct winner for this roster count
+          expect(indexFromRotation(cumulativeRotation, names.length)).toBe(winner);
+          previousWinner = winner;
+        }
+      });
     });
   });
 });

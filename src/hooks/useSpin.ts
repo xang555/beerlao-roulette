@@ -173,8 +173,9 @@ export function useSpin(options: UseSpinOptions = {}): {
     const winnerIndex = pickWinnerIndex(names, rng);
 
     // Calculate target rotation
-    // IMPORTANT: accumulate by delta to new winner, not absolute target
-    // This ensures multi-spin scenarios land on the correct winner each time
+    // IMPORTANT: use absolute-rotation forward-distance approach
+    // This ensures multi-spin scenarios land on the correct winner each time,
+    // even when the roster changes between spins (count differs).
     const segmentAngle = 360 / count;
     const previousWinnerIndex = previousWinnerIndexRef.current;
 
@@ -183,15 +184,25 @@ export function useSpin(options: UseSpinOptions = {}): {
       // First spin: use full target rotation
       deltaRotation = calculateTargetRotation(winnerIndex, count);
     } else {
-      // Subsequent spins: calculate delta from previous winner
-      // Wheel rotates clockwise, so higher indices need negative delta
-      let indexDelta = previousWinnerIndex - winnerIndex;
-      // Handle wraparound (e.g., going from index 0 to 2 means wraparound)
-      if (indexDelta < 0) {
-        indexDelta += count;
-      }
-      // Delta rotation: move to new winner + dramatic turns (always 5 full turns)
-      deltaRotation = indexDelta * segmentAngle + 5 * 360;
+      // Subsequent spins: calculate forward distance to new winner
+      // using absolute rotation, not index delta. This is robust across
+      // roster changes because we compute the desired alignment for the
+      // current count and measure the clockwise gap from current position.
+      const base = cumulativeRotationRef.current;
+
+      // Desired rotation modulo: where should the winner segment be?
+      // Winner index i has center at (i + 0.5) * segmentAngle.
+      // To bring that segment to the top (0°), rotate clockwise by:
+      const desiredMod = ((360 - (winnerIndex + 0.5) * segmentAngle) % 360 + 360) % 360;
+
+      // Current rotation modulo: where are we now?
+      const currentMod = ((base % 360) + 360) % 360;
+
+      // Clockwise gap from current to desired
+      const forward = ((desiredMod - currentMod) % 360 + 360) % 360;
+
+      // Delta rotation: forward distance + dramatic turns (5 full turns)
+      deltaRotation = forward + 5 * 360;
     }
 
     cumulativeRotationRef.current += deltaRotation;
