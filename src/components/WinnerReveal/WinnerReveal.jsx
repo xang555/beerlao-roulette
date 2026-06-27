@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
 const SEGMENT_COLORS = [
-  '#00e5ff', '#ff007a', '#39ff14', '#ffd700',
-  '#bf00ff', '#ff6b00', '#ff69b4', '#0066ff',
+  'var(--color-neon-cyan)',
+  'var(--color-neon-magenta)',
+  'var(--color-neon-lime)',
+  'var(--color-neon-gold)',
+  'var(--color-neon-purple)',
+  'var(--color-neon-orange)',
+  'var(--color-neon-pink)',
+  'var(--color-neon-blue)',
 ]
 
 function Confetti() {
