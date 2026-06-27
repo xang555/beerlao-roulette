@@ -133,7 +133,7 @@ export default function WinnerReveal({ winner, onSpinAgain, onReset }) {
                 fontSize: 'clamp(3rem, 12vmin, 7rem)',
                 lineHeight: 1,
                 marginBottom: 'var(--space-4)',
-                filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.6))',
+                filter: 'var(--filter-drop-shadow-gold)',
               }}
               aria-hidden="true"
             >
