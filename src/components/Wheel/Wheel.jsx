@@ -1,20 +1,5 @@
 import { useRef, useEffect } from 'react'
 
-/**
- * Segment colors mirror --wheel-color-1 … --wheel-color-8 from tokens.css.
- * Hardcoded here because SVG fill attributes don't resolve CSS custom properties.
- */
-const SEGMENT_COLORS = [
-  '#00e5ff', // --wheel-color-1 cyan
-  '#ff007a', // --wheel-color-2 magenta
-  '#39ff14', // --wheel-color-3 lime
-  '#ffd700', // --wheel-color-4 gold
-  '#bf00ff', // --wheel-color-5 purple
-  '#ff6b00', // --wheel-color-6 orange
-  '#ff69b4', // --wheel-color-7 pink
-  '#0066ff', // --wheel-color-8 blue
-]
-
 const SVG_W = 400
 const SVG_H = 430 // extra 30px at top for the pointer
 const CX = SVG_W / 2
@@ -33,7 +18,6 @@ function toPoint(angleDeg, r) {
 
 function segPath(i, n) {
   if (n === 1) {
-    // Full circle as two semicircles (SVG can't arc 360° in one command)
     return [
       `M ${CX} ${CY - RADIUS}`,
       `A ${RADIUS} ${RADIUS} 0 1 1 ${CX} ${CY + RADIUS}`,
@@ -56,7 +40,6 @@ function segPath(i, n) {
 function labelProps(i, n) {
   const seg = 360 / n
   const mid = (i + 0.5) * seg
-  // Pull label inward more as count grows to avoid hitting the rim
   const ratio = n <= 3 ? 0.52 : n <= 6 ? 0.62 : n <= 10 ? 0.68 : 0.72
   const { x, y } = toPoint(mid, RADIUS * ratio)
   const fontSize = n <= 4 ? 15 : n <= 7 ? 12 : n <= 12 ? 10 : 8
@@ -68,16 +51,32 @@ function truncate(name, n) {
   return name.length > maxLen ? name.slice(0, maxLen - 1) + '…' : name
 }
 
+// Idle bezel shimmer arc — 40° arc at the top of the rim, animated to orbit
+const SHIMMER_HALF = 20
+const shP0 = toPoint(-SHIMMER_HALF, RADIUS + 1)
+const shP1 = toPoint(SHIMMER_HALF, RADIUS + 1)
+const SHIMMER_PATH = `M ${shP0.x.toFixed(2)} ${shP0.y.toFixed(2)} A ${RADIUS + 1} ${RADIUS + 1} 0 0 1 ${shP1.x.toFixed(2)} ${shP1.y.toFixed(2)}`
+
 /**
  * Wheel — SVG roulette wheel.
  *
  * Consumes isSpinning / targetRotation / timing from useSpin.
  * Never computes the winner itself.
+ *
+ * Colors: segment fills use CSS vars (--wheel-color-1…8) via style property,
+ * which resolves custom properties unlike SVG presentation attributes.
+ * Gold chrome (bezel, hub, pointer) uses --color-gold-* via style property.
+ * Neutral geometry overlays (gloss dome) use hardcoded white/black.
  */
 export default function Wheel({ names = [], isSpinning, targetRotation, timing }) {
   const groupRef = useRef(null)
   const currentRotRef = useRef(0)
   const rafRef = useRef(null)
+
+  // Read inside component so the test stub (module-level matchMedia mock) applies
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
     if (rafRef.current) {
@@ -146,6 +145,27 @@ export default function Wheel({ names = [], isSpinning, targetRotation, timing }
         role="img"
       >
         <defs>
+          {/* Horizontal gold gradient — pointer and accent chrome */}
+          <linearGradient id="whl-gold-h" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   style={{ stopColor: 'var(--color-gold-dark)' }} />
+            <stop offset="50%"  style={{ stopColor: 'var(--color-gold-bright)' }} />
+            <stop offset="100%" style={{ stopColor: 'var(--color-gold-dark)' }} />
+          </linearGradient>
+
+          {/* Radial gradient — center hub depth */}
+          <radialGradient id="whl-hub-grad" cx="38%" cy="32%" r="62%">
+            <stop offset="0%"   style={{ stopColor: 'var(--color-gold-bright)' }} />
+            <stop offset="50%"  style={{ stopColor: 'var(--color-gold-lager)' }} />
+            <stop offset="100%" style={{ stopColor: 'var(--color-gold-dark)' }} />
+          </radialGradient>
+
+          {/* Radial overlay — simulates glossy dome on wheel surface (neutral, no token needed) */}
+          <radialGradient id="whl-gloss" cx="38%" cy="28%" r="55%">
+            <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.12" />
+            <stop offset="75%"  stopColor="#ffffff" stopOpacity="0.02" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0.06" />
+          </radialGradient>
+
           <filter id="whl-ptr-glow" x="-80%" y="-80%" width="260%" height="260%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
             <feMerge>
@@ -154,7 +174,7 @@ export default function Wheel({ names = [], isSpinning, targetRotation, timing }
             </feMerge>
           </filter>
           <filter id="whl-ring-glow" x="-15%" y="-15%" width="130%" height="130%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -179,20 +199,19 @@ export default function Wheel({ names = [], isSpinning, targetRotation, timing }
           }}
         >
           {n === 0 ? (
-            <circle cx={CX} cy={CY} r={RADIUS} fill="#111120" />
+            <circle cx={CX} cy={CY} r={RADIUS} style={{ fill: 'var(--color-bg-surface)' }} />
           ) : (
             names.map((name, i) => {
-              const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length]
               const d = segPath(i, n)
               const lp = labelProps(i, n)
               const label = truncate(name, n)
               return (
                 <g key={i}>
-                  {/* segment fill */}
-                  <path d={d} fill={color} />
-                  {/* dark divider */}
-                  <path d={d} fill="none" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" />
-                  {/* label — dark text with white outline for legibility on any color */}
+                  {/* segment fill via CSS var — resolves through SVG style property */}
+                  <path d={d} style={{ fill: `var(--wheel-color-${(i % 8) + 1})` }} />
+                  {/* divider — warm dark separator */}
+                  <path d={d} style={{ fill: 'none', stroke: 'rgba(0,0,0,0.45)', strokeWidth: '1.5' }} />
+                  {/* label — dark fill with white outline for legibility on any color */}
                   <text
                     x={lp.x}
                     y={lp.y}
@@ -203,7 +222,7 @@ export default function Wheel({ names = [], isSpinning, targetRotation, timing }
                       fontSize: `${lp.fontSize}px`,
                       fontFamily: 'var(--font-display)',
                       fontWeight: 700,
-                      fill: '#0a0a12',
+                      fill: 'var(--color-bg-base)',
                       paintOrder: 'stroke',
                       stroke: 'rgba(255,255,255,0.85)',
                       strokeWidth: '3px',
@@ -220,37 +239,84 @@ export default function Wheel({ names = [], isSpinning, targetRotation, timing }
             })
           )}
 
-          {/* center hub */}
-          <circle cx={CX} cy={CY} r={18} fill="#08080f" stroke="#00e5ff" strokeWidth="2" />
-          <circle cx={CX} cy={CY} r={7} fill="#00e5ff" filter="url(#whl-txt-glow)" />
+          {/* Gloss dome overlay — subtle specular highlight across all segments */}
+          {n > 0 && (
+            <circle cx={CX} cy={CY} r={RADIUS} fill="url(#whl-gloss)" />
+          )}
+
+          {/* center hub — layered rings for depth */}
+          <circle cx={CX} cy={CY} r={26} style={{ fill: 'var(--color-bg-base)' }} />
+          <circle cx={CX} cy={CY} r={21} fill="url(#whl-hub-grad)" />
+          <circle
+            cx={CX} cy={CY} r={21}
+            style={{ fill: 'none', stroke: 'var(--color-gold-bright)', strokeWidth: '1' }}
+            opacity="0.65"
+          />
+          {/* Hub center gem */}
+          <circle
+            cx={CX} cy={CY} r={6}
+            style={{ fill: 'var(--color-gold-bright)' }}
+            filter="url(#whl-txt-glow)"
+            opacity="0.95"
+          />
         </g>
 
-        {/* ── neon rim (not rotating) ── */}
+        {/* ── premium gold bezel (not rotating) ── */}
+        {/* Outer shadow ring — depth behind the bezel */}
         <circle
-          cx={CX}
-          cy={CY}
-          r={RADIUS}
-          fill="none"
-          stroke="#00e5ff"
-          strokeWidth="3"
+          cx={CX} cy={CY} r={RADIUS + 5}
+          style={{ fill: 'none', stroke: 'rgba(0,0,0,0.65)', strokeWidth: '10' }}
+        />
+        {/* Gold glow ring */}
+        <circle
+          cx={CX} cy={CY} r={RADIUS + 1}
+          style={{ fill: 'none', stroke: 'var(--color-gold-lager)', strokeWidth: '6' }}
           filter="url(#whl-ring-glow)"
-          opacity="0.75"
+          opacity="0.85"
+        />
+        {/* Solid bezel highlight edge */}
+        <circle
+          cx={CX} cy={CY} r={RADIUS + 1}
+          style={{ fill: 'none', stroke: 'var(--color-gold-bright)', strokeWidth: '1.5' }}
+          opacity="0.55"
+        />
+        {/* Inner border — clean separation from segments */}
+        <circle
+          cx={CX} cy={CY} r={RADIUS - 1}
+          style={{ fill: 'none', stroke: 'rgba(0,0,0,0.45)', strokeWidth: '1.5' }}
+        />
+
+        {/* ── idle shimmer arc — slowly orbits the bezel when not spinning ── */}
+        <path
+          d={SHIMMER_PATH}
+          style={{
+            fill: 'none',
+            stroke: 'rgba(245, 200, 66, 0.65)',
+            strokeWidth: '5',
+            strokeLinecap: 'round',
+            transformOrigin: `${CX}px ${CY}px`,
+            animation:
+              isSpinning || prefersReducedMotion
+                ? 'none'
+                : 'whl-bezel-shimmer 7s linear infinite',
+          }}
         />
 
         {/* ── pointer (fixed at top) ── */}
-        {/* glow layer */}
+        {/* Glow backing */}
         <polygon
           points={`${CX},${PTR_TIP_Y} ${CX - PTR_HALF_W - 4},${PTR_BASE_Y - 4} ${CX + PTR_HALF_W + 4},${PTR_BASE_Y - 4}`}
-          fill="#00e5ff"
+          style={{ fill: 'var(--color-gold-amber)' }}
           opacity="0.5"
           filter="url(#whl-ptr-glow)"
         />
-        {/* solid triangle */}
+        {/* Main pointer — gold gradient, tip at exactly PTR_TIP_Y = CY - RADIUS */}
         <polygon
           points={`${CX},${PTR_TIP_Y} ${CX - PTR_HALF_W},${PTR_BASE_Y} ${CX + PTR_HALF_W},${PTR_BASE_Y}`}
-          fill="#00e5ff"
+          fill="url(#whl-gold-h)"
+          filter="url(#whl-ptr-glow)"
         />
-        {/* white inner highlight */}
+        {/* Center highlight streak */}
         <polygon
           points={`${CX},${PTR_TIP_Y + 4} ${CX - 6},${PTR_BASE_Y + 4} ${CX + 6},${PTR_BASE_Y + 4}`}
           fill="white"

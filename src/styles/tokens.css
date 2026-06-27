@@ -8,16 +8,16 @@
   /* --------------------------------------------------------------------------
      BACKGROUND COLORS
   -------------------------------------------------------------------------- */
-  --color-bg-base:     #08080f; /* page background */
-  --color-bg-surface:  #111120; /* cards, panels */
-  --color-bg-elevated: #1a1a2e; /* modals, dropdowns */
-  --color-bg-overlay:  rgba(8, 8, 15, 0.85); /* semi-transparent overlay */
+  --color-bg-base:     #0a0806; /* page background — warm dark pub */
+  --color-bg-surface:  #131008; /* cards, panels */
+  --color-bg-elevated: #1c1a10; /* modals, dropdowns */
+  --color-bg-overlay:  rgba(10, 8, 6, 0.88); /* semi-transparent overlay */
 
   /* --------------------------------------------------------------------------
      NEON ACCENT PALETTE
      These are the canonical neon brand colors used everywhere.
   -------------------------------------------------------------------------- */
-  --color-neon-cyan:    #00e5ff;
+  --color-neon-cyan:    #00e5ff; /* kept as accent / wheel segment / confetti */
   --color-neon-magenta: #ff007a;
   --color-neon-lime:    #39ff14;
   --color-neon-gold:    #ffd700;
@@ -25,6 +25,20 @@
   --color-neon-purple:  #bf00ff;
   --color-neon-pink:    #ff69b4;
   --color-neon-blue:    #0066ff;
+
+  /* --------------------------------------------------------------------------
+     PRIMARY GOLD / AMBER PALETTE
+     Gold-beer direction — lager gold primary, deep amber secondary.
+     Define once here; reference everywhere primary chrome shows.
+  -------------------------------------------------------------------------- */
+  --color-gold-bright:   #f5c842;  /* warm gold highlight / sparkle     */
+  --color-gold-lager:    #d4881e;  /* lager gold — main primary          */
+  --color-gold-amber:    #c07618;  /* deep amber                         */
+  --color-gold-dark:     #8a4e08;  /* dark bronze / depth                */
+
+  --color-primary:       var(--color-gold-lager);
+  --color-primary-light: var(--color-gold-bright);
+  --color-primary-dark:  var(--color-gold-dark);
 
   /* --------------------------------------------------------------------------
      WHEEL SEGMENT COLORS
@@ -46,7 +60,7 @@
   --color-text-primary:   #ffffff;
   --color-text-secondary: rgba(255, 255, 255, 0.70);
   --color-text-muted:     rgba(255, 255, 255, 0.40);
-  --color-text-accent:    var(--color-neon-cyan);
+  --color-text-accent:    var(--color-primary-light);
   --color-text-winner:    var(--color-neon-gold);
 
   /* --------------------------------------------------------------------------
@@ -57,6 +71,7 @@
   --color-border-neon-cyan:    rgba(0, 229, 255, 0.35);
   --color-border-neon-magenta: rgba(255, 0, 122, 0.35);
   --color-border-neon-gold:    rgba(255, 215, 0, 0.35);
+  --color-border-primary:      rgba(212, 136, 30, 0.35);
 
   /* --------------------------------------------------------------------------
      GLOW SHADOWS
@@ -80,6 +95,10 @@
 
   --glow-purple-sm:  0 0  6px rgba(191, 0, 255, 0.50);
   --glow-purple-md:  0 0 18px rgba(191, 0, 255, 0.60), 0 0  6px rgba(191, 0, 255, 0.40);
+
+  --glow-amber-sm:   0 0  6px rgba(212, 136, 30, 0.60);
+  --glow-amber-md:   0 0 18px rgba(212, 136, 30, 0.70), 0 0  6px rgba(212, 136, 30, 0.50);
+  --glow-amber-lg:   0 0 40px rgba(212, 136, 30, 0.80), 0 0 80px rgba(212, 136, 30, 0.40);
 
   /* --------------------------------------------------------------------------
      TYPOGRAPHY
