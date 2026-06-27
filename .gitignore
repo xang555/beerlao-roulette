@@ -1,7 +1,33 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Cache
+.cache/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+
+# Environment
 .env
 .env.local
 .env.*.local
-*.log
-.DS_Store
+
+# Multica runtime (auto-generated, contains workspace tokens)
+.multica/
+.agent_context/
